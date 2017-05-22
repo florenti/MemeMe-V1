@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  MemeEditorViewController.swift
 //  MemeMe-V1
 //
 //  Created by Florent Spahiu on 17/05/2017.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate {
+class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate {
 
     @IBOutlet weak var mainImageView: UIImageView!
     
@@ -25,7 +25,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         NSStrokeColorAttributeName: UIColor.black,
         NSForegroundColorAttributeName: UIColor.white,
         NSFontAttributeName: UIFont(name: "HelveticaNeue-CondensedBlack", size: 40)!,
-        NSStrokeWidthAttributeName: -2.5]
+        NSStrokeWidthAttributeName: -3.6]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,17 +39,18 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
 
     @IBAction func pickAnImageFromCamera(_ sender: AnyObject) {
-        let pickerController = UIImagePickerController()
-        pickerController.delegate = self
-        pickerController.sourceType = .camera
-        self.present(pickerController, animated: true, completion: nil)
+        pick(sourceType: .camera)
     }
     
     @IBAction func pickAnImageFromLibrary(_ sender: AnyObject) {
-        let pickerController = UIImagePickerController()
-        pickerController.delegate = self
-        pickerController.sourceType = .photoLibrary
-        self.present(pickerController, animated: true, completion: nil)
+        pick(sourceType: .photoLibrary)
+    }
+    
+    func pick(sourceType: UIImagePickerControllerSourceType){
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        imagePicker.sourceType = sourceType
+        self.present(imagePicker, animated: true, completion: nil)
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
@@ -69,11 +70,14 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         cameraBtn.isEnabled = UIImagePickerController.isSourceTypeAvailable(.camera)
         shareBtn.isEnabled = mainImageView.image != nil
         
-        topTextField.defaultTextAttributes = memeTextAttributes
-        topTextField.textAlignment = .center
+        prepareTextField(textField: topTextField)
+        prepareTextField(textField: bottomTextField)
         
-        bottomTextField.defaultTextAttributes = memeTextAttributes
-        bottomTextField.textAlignment = .center
+    }
+    
+    func prepareTextField(textField: UITextField) {
+        textField.defaultTextAttributes = memeTextAttributes
+        textField.textAlignment  = .center
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -93,7 +97,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     func keyboardWillShow(_ notification: Notification) {
-        view.frame.origin.y -= getKeyboardHeight(notification)
+        if bottomTextField.isEditing {
+            view.frame.origin.y -= getKeyboardHeight(notification)
+        }
     }
     
     func keyboardWillHide(_ notification:Notification) {
@@ -114,10 +120,15 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     @IBAction func shareImage() {
-        save()
-        
         let memedImage = generateMemedImage()
         let activityView = UIActivityViewController(activityItems: [memedImage], applicationActivities: nil)
+        
+        activityView.completionWithItemsHandler = {(activity, completed, items, error) in
+            if (completed) {
+                let _ = self.save()
+            }
+        }
+        
         self.present(activityView, animated: true, completion: nil)
     }
     
@@ -126,19 +137,14 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         print(meme)
     }
     
-    struct Meme {//structure of meme to save its info
-        var topText: String
-        var bottomText: String
-        var originalImage: UIImage
-        var memedImage: UIImage
-    }
+   
 
     func generateMemedImage() -> UIImage {
         bottomBar.isHidden = true
         navigationBar.isHidden = true
         
-        UIGraphicsBeginImageContext(self.view.frame.size)
-        view.drawHierarchy(in: self.view.frame, afterScreenUpdates: true)
+        UIGraphicsBeginImageContext(view.frame.size)
+        view.drawHierarchy(in: view.frame, afterScreenUpdates: true)
         let memedImage: UIImage = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
         
