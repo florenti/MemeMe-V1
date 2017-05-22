@@ -38,6 +38,7 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         return true
     }
 
+    //MARK: - Image picking
     @IBAction func pickAnImageFromCamera(_ sender: AnyObject) {
         pick(sourceType: .camera)
     }
@@ -72,7 +73,6 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         
         prepareTextField(textField: topTextField)
         prepareTextField(textField: bottomTextField)
-        
     }
     
     func prepareTextField(textField: UITextField) {
@@ -85,6 +85,7 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         unsubscribeFromKeyboardNotifications()
     }
     
+    //MARK: - Keyboard Notifications
     func subscribeToKeyboardNotifications() {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: .UIKeyboardWillShow, object: nil)
         
@@ -119,6 +120,7 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         shareBtn.isEnabled = false
     }
     
+    //MARK: - Image Sharing and Saving
     @IBAction func shareImage() {
         let memedImage = generateMemedImage()
         let activityView = UIActivityViewController(activityItems: [memedImage], applicationActivities: nil)
@@ -137,8 +139,7 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         print(meme)
     }
     
-   
-
+    //MARK: - Meme Generation
     func generateMemedImage() -> UIImage {
         bottomBar.isHidden = true
         navigationBar.isHidden = true
